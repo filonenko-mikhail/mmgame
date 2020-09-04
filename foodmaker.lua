@@ -71,7 +71,7 @@ box.cfg{
    listen='0.0.0.0:3300',
    replication=conf.replication,
    replication_connect_timeout=0.1,
-   replication_connect_quorum=0,
+   replication_connect_quorum=1,
    work_dir="./storage",
    log="file:foodmaker.log",
 }

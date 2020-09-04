@@ -8,6 +8,7 @@ local ffi = require('ffi')
 local icons = require('icons')
 local conf = require('conf')
 
+math.randomseed(fiber.time())
 
 --[[
    Настройка stdin буфера чтения
@@ -62,6 +63,11 @@ local new = ffi.new('struct termios[1]', {{0}})
 if (ffi.C.tcgetattr(0, old) < 0) then
    error("tcgetattr old settings")
 end
+box.ctl.on_shutdown(function()
+      if( ffi.C.tcsetattr( 0 , 0 , old ) < 0 ) then
+         error( "tcssetattr makeraw new" );
+      end
+end)
 if (ffi.C.tcgetattr(0, new) < 0 ) then
    error("tcgetaart new settings")
 end
@@ -170,7 +176,7 @@ fio.mktree('./dataplayer')
 box.cfg{listen='0.0.0.0:3301',
         replication=conf.replication,
         replication_connect_timeout=0.1,
-        replication_connect_quorum=0,
+        replication_connect_quorum=1,
         work_dir="./dataplayer",
         log="file:player.log"}
 
