@@ -11,6 +11,10 @@ local conf = {
    space_name = 'game',
    width = 80,
    height = 40,
+
+   max_energy = 5,
+
+   born_health = 2,
 }
 
 return conf

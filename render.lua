@@ -11,7 +11,6 @@ local esc = string.char(27)
 local clrscr = esc .. '[J'
 local upperleft = esc .. '[H'
 
-
 local function move_cursor(x, y)
    x = math.floor(x)
    y = math.floor(y)
@@ -26,6 +25,12 @@ local function render_trigger(old, new, sp, op)
    if new ~= nil then
       move_cursor(new['x'], new['y'])
       io.write(new['icon']) io.flush()
+
+      if new['id'] == box.info.uuid then
+         move_cursor(5, 1)
+         io.write('Player: ' .. new['icon'])
+         io.write(' Health: ' .. tostring(new['health'])) io.flush()
+      end
    end
 end
 

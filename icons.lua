@@ -1,4 +1,4 @@
-local persons = {
+local players = {
    '☠',
    '💣',
    '🧟',
@@ -121,7 +121,7 @@ local times = {
 }
 
 return {
-   persons = persons,
+   players = players,
    moons = moons,
    food = food,
    times = times,
