@@ -9,6 +9,9 @@ local icons = require('icons')
 local conf = require('conf')
 
 
+--[[
+   Настройка stdin буфера чтения
+]]
 if ffi.os == 'Linux' then
    ffi.cdef[[
 typedef unsigned char  cc_t;
@@ -51,8 +54,9 @@ void cfmakeraw(struct termios *termios_p);
 ]]
 end
 
-local quorum = math.floor(#conf.replication/2)
-
+--[[
+   Отключить обязательный <enter> в stdin
+]]
 local old = ffi.new('struct termios[1]', {{0}})
 local new = ffi.new('struct termios[1]', {{0}})
 if (ffi.C.tcgetattr(0, old) < 0) then
@@ -73,15 +77,19 @@ local exit = function()
    os.exit(0)
 end
 
+-- Загружаем рендерер
 local render = require('render')
 
 local width = conf.width
 local height = conf.height
 
-local player_index = 1
+-- Позиция персонажа игрока
 local player_x = width
 local player_y = height
 
+--[[
+   Двигаем персонажа
+]]
 local move_player = function(x, y)
    if x > width then
       x = width
@@ -103,6 +111,7 @@ local move_player = function(x, y)
 
    if type(box.cfg) ~= 'function' then
       if box.space[conf.space_name] ~= nil then
+         -- Переместить персонажа в спейсе
          local player = box.space[conf.space_name]:get(box.info.uuid)
          if player == nil then
             player = box.tuple.new({box.info.uuid,
@@ -122,6 +131,10 @@ local move_player = function(x, y)
    end
 end
 
+--[[
+  Цикл чтения клавиатуры
+  Ctrl-C выход из цикла
+]]
 local buf = ffi.new('char[2]', {0, 0})
 local reader = fiber.new(function()
       while true do
@@ -161,6 +174,9 @@ box.cfg{listen='0.0.0.0:3301',
         work_dir="./dataplayer",
         log="file:player.log"}
 
+--[[
+   Позиция персонажа если он уже был создан
+]]
 local player = box.space[conf.space_name]:get(box.info.uuid)
 if player ~= nil then
    player = player:tomap({names_only=true})

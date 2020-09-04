@@ -14,8 +14,9 @@ local function move_cursor(x, y)
 end
 
 -- рендерер
--- используется io.write чтобы не было лишних переводов строк
+-- используется io.write io.flush чтобы не было лишних переводов строк
 local function render_trigger(old, new, sp, op)
+   -- затереть старый кадр при условии что было смещение
    if old ~= nil then
       if (new ~= nil and
              (old['x'] ~= new['x'] or old['y'] ~= new['y']) )
@@ -24,10 +25,12 @@ local function render_trigger(old, new, sp, op)
             io.write(' ') io.flush()
       end
    end
+   -- новый кадр
    if new ~= nil then
       move_cursor(new['x'], new['y'])
       io.write(new['icon']) io.flush()
 
+      -- обновить информационную панель
       if new['id'] == box.info.uuid then
          move_cursor(5, 1)
          io.write('Player: ' .. new['icon'])

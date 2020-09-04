@@ -7,8 +7,12 @@ local uuid = require('uuid')
 local icons = require('icons')
 local conf = require('conf')
 
+-- рендерер
 local render = require('render')
 
+--[[
+   Цикл обработки столкновений
+]]
 local channel = fiber.channel(1000)
 local function collision_loop()
    fiber.self():name("Collision")
@@ -31,8 +35,11 @@ local function collision_loop()
       box.space[conf.space_name]:put(player)
    end
 end
-
 fiber.new(collision_loop)
+
+--[[
+   Триггер проверки столкновений
+]]
 local function collision_trigger(old, new, sp, op)
    if new ~= nil then
       if #new['id'] > 3 and new['food'] ~= true then
@@ -46,7 +53,7 @@ local function collision_trigger(old, new, sp, op)
    end
 end
 
-
+-- Устновки триггера проверки столкновений
 box.ctl.on_schema_init(function()
       box.space._space:on_replace(function(old, sp)
             if not old and sp and sp.name == conf.space_name then
@@ -57,7 +64,7 @@ box.ctl.on_schema_init(function()
       end)
 end)
 
-
+-- Создание спейс, индексов
 local fio = require('fio')
 fio.mktree('./storage')
 box.cfg{
@@ -93,18 +100,12 @@ box.space[conf.space_name]:create_index('pos',
                                          unique=false,
                                          if_not_exists = true})
 
-box.space[conf.space_name]:create_index('train',
-                                        {parts={{field="id", type="string"},
-                                            {field="x", type="unsigned"},
-                                            {field="y", type="unsigned"}},
-                                         unique=false,
-                                         if_not_exists = true})
-
 box.space[conf.space_name]:create_index('food',
                                         {parts={{field="food", type="boolean"}},
                                          unique=false,
                                          if_not_exists = true})
 
+-- Цикл создания продуктов
 math.randomseed(fiber.time())
 local function food_loop()
    fiber.self():name("Food")
@@ -123,13 +124,13 @@ end
 
 fiber.new(food_loop)
 
-local width = conf.width
-local height = conf.height
 
+--[[
+   Цикл анимации подложки
+]]
 local delay = 3
 local moon = 1
 local x = 1
-
 local function loader()
    box.space[conf.space_name]:put({'1',
                                    icons.moons[moon],
@@ -141,7 +142,7 @@ local function loader()
    box.space[conf.space_name]:put({'2',
                                    '🚃',
                                    x,
-                                   height/2,
+                                   conf.height/2,
                                    true,
                                    0})
 
@@ -155,7 +156,7 @@ local function loader()
          moon = 1
       end
       x = x + 1
-      if x > width then
+      if x > conf.width then
          x = 1
       end
    end
@@ -170,6 +171,3 @@ local function loader_loop()
    end
 end
 local render_loader = fiber.new(loader_loop)
-
---io.write(upperleft) io.flush()
---io.write(clrscr) io.flush()
