@@ -9,11 +9,6 @@ local conf = require('conf')
 
 local render = require('render')
 
-local x_field = 3
-local y_field = 4
-local food_field = 5
-local health_field = 6
-
 local channel = fiber.channel(1000)
 local function collision_loop()
    fiber.self():name("Collision")
@@ -22,27 +17,28 @@ local function collision_loop()
       local food = pair.food
       local player = pair.player
 
-      local newplayer = box.tuple.new({
-            player[1],
-            player[2],
-            player[3],
-            player[4],
-            player[5],
-            player[health_field] + food[health_field],
-      })
+      player = player:tomap({names_only=true})
+      if food['id'] == '2' then
+         player['health'] = conf.born_health
+      else
+         player['health'] = player['health'] + food['health']
+      end
+      player = box.space[conf.space_name]:frommap(player)
 
-      box.space[conf.space_name]:delete(food[1])
-      box.space[conf.space_name]:put(newplayer)
+      if food['id'] ~= '2' then
+         box.space[conf.space_name]:delete(food['id'])
+      end
+      box.space[conf.space_name]:put(player)
    end
 end
 
 fiber.new(collision_loop)
 local function collision_trigger(old, new, sp, op)
    if new ~= nil then
-      if #new[1] > 3 and new[food_field] ~= true then
-         local food = box.space[conf.space_name].index['pos']:min({new[x_field], new[y_field], true})
+      if #new['id'] > 3 and new['food'] ~= true then
+         local food = box.space[conf.space_name].index['pos']:min({new['x'], new['y'], true})
          if food ~= nil then
-            if new[1] ~= food[1] and #food[1] > 3 then
+            if new['id'] ~= food['id'] then
                channel:put({food=food, player=new})
             end
          end
@@ -50,43 +46,12 @@ local function collision_trigger(old, new, sp, op)
    end
 end
 
-local train_channel = fiber.channel(1000)
-local function train_loop()
-   fiber.self():name("Train")
-   while true do
-      local pair = train_channel:get()
-      local player = pair.player
-
-      local newplayer = box.tuple.new({
-            player[1],
-            player[2],
-            player[3],
-            player[4],
-            player[5],
-            conf.born_health,
-      })
-
-      box.space[conf.space_name]:put(newplayer)
-   end
-end
-fiber.new(train_loop)
-local function train_trigger(old, new, sp, op)
-   if new ~= nil then
-      if #new[1] > 3 and new[food_field] ~= true then
-         local train = box.space[conf.space_name].index['train']:min({'2', new[x_field], new[y_field]})
-         if train ~= nil then
-            train_channel:put({player=new})
-         end
-      end
-   end
-end
 
 box.ctl.on_schema_init(function()
       box.space._space:on_replace(function(old, sp)
             if not old and sp and sp.name == conf.space_name then
                box.on_commit(function()
                      box.space[conf.space_name]:on_replace(collision_trigger)
-                     box.space[conf.space_name]:on_replace(train_trigger)
                end)
             end
       end)
@@ -177,7 +142,7 @@ local function loader()
                                    '🚃',
                                    x,
                                    height/2,
-                                   false,
+                                   true,
                                    0})
 
    delay = delay - 1

@@ -1,26 +1,28 @@
 #!/usr/bin/env tarantool
 
 local log = require('log')
-local fiber = require('fiber')
-local socket = require('socket')
 
-local icons = require('icons')
 local conf = require('conf')
 
 local esc = string.char(27)
-local clrscr = esc .. '[J'
-local upperleft = esc .. '[H'
 
+-- двигаем курсор для рисования
 local function move_cursor(x, y)
    x = math.floor(x)
    y = math.floor(y)
    io.write(esc .. ('[%i;%iH'):format(y, x)) io.flush()
 end
 
+-- рендерер
+-- используется io.write чтобы не было лишних переводов строк
 local function render_trigger(old, new, sp, op)
    if old ~= nil then
-      move_cursor(old['x'], old['y'])
-      io.write(' ') io.flush()
+      if (new ~= nil and
+             (old['x'] ~= new['x'] or old['y'] ~= new['y']) )
+         or new == nil then
+            move_cursor(old['x'], old['y'])
+            io.write(' ') io.flush()
+      end
    end
    if new ~= nil then
       move_cursor(new['x'], new['y'])
@@ -34,14 +36,13 @@ local function render_trigger(old, new, sp, op)
    end
 end
 
+-- установка рендерера на спейс
 box.ctl.on_schema_init(function()
-      box.space._space:on_replace(function(_, sp)
-            if sp.name == conf.space_name then
+      box.space._space:on_replace(function(old, sp)
+            if not old and sp and sp.name == conf.space_name then
                box.on_commit(function()
                      box.space[conf.space_name]:on_replace(render_trigger)
                end)
             end
       end)
-      io.write(upperleft)io.flush()
-      io.flush(clrscr)io.flush()
 end)
