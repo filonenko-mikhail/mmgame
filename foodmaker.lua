@@ -7,10 +7,6 @@ local uuid = require('uuid')
 local icons = require('icons')
 local conf = require('conf')
 
-local fio = require('fio')
-fio.mktree('./storage')
-
-
 local render = require('render')
 
 local x_field = 3
@@ -79,7 +75,6 @@ local function train_trigger(old, new, sp, op)
       if #new[1] > 3 and new[food_field] ~= true then
          local train = box.space[conf.space_name].index['train']:min({'2', new[x_field], new[y_field]})
          if train ~= nil then
-            log.info('!!!!@!@!@!@!@2')
             train_channel:put({player=new})
          end
       end
@@ -97,6 +92,9 @@ box.ctl.on_schema_init(function()
       end)
 end)
 
+
+local fio = require('fio')
+fio.mktree('./storage')
 box.cfg{
    listen='0.0.0.0:3300',
    replication=conf.replication,
@@ -137,17 +135,24 @@ box.space[conf.space_name]:create_index('train',
                                          unique=false,
                                          if_not_exists = true})
 
+box.space[conf.space_name]:create_index('food',
+                                        {parts={{field="food", type="boolean"}},
+                                         unique=false,
+                                         if_not_exists = true})
+
 math.randomseed(fiber.time())
 local function food_loop()
+   fiber.self():name("Food")
    while true do
-      box.space[conf.space_name]:put({uuid.str(),
-                                      icons.food[math.random(#icons.food)],
-                                      math.random(conf.width - 1),
-                                      math.random(conf.height - 1) + 1, -- first line is for info
-                                      true,
-                                      math.random(conf.max_energy)})
+      if box.space[conf.space_name].index['food']:count(true) < 10 then
+         box.space[conf.space_name]:put({uuid.str(),
+                                         icons.food[math.random(#icons.food)],
+                                         math.random(conf.width - 1),
+                                         math.random(conf.height - 1) + 1, -- first line is for info
+                                         true,
+                                         math.random(conf.max_energy)})
+      end
       fiber.sleep(5)
-      break
    end
 end
 

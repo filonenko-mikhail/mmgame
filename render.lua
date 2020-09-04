@@ -29,7 +29,7 @@ local function render_trigger(old, new, sp, op)
       if new['id'] == box.info.uuid then
          move_cursor(5, 1)
          io.write('Player: ' .. new['icon'])
-         io.write(' Health: ' .. tostring(new['health'])) io.flush()
+         io.write(' Health: ' .. tostring(new['health']) .. '   ') io.flush()
       end
    end
 end
