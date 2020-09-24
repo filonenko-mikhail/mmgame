@@ -1,13 +1,8 @@
 local conf = {
-   -- Координатор и список игроков
-   replication = {
-      'rep:pwd@127.0.0.1:3300',
-      'rep:pwd@127.0.0.1:3301',
-      'rep:pwd@127.0.0.1:3302',
-      'rep:pwd@127.0.0.1:3303',
-      'rep:pwd@127.0.0.1:3304',
-      'rep:pwd@127.0.0.1:3305',
-   },
+
+   --- Replication user/password
+   user = 'rep',
+   password = 'pwd',
 
    -- Спейс для игры
    space_name = 'game',
@@ -20,6 +15,13 @@ local conf = {
 
    -- Энергия при рождении
    born_health = 2,
+
+   moon_type = 'moon',
+   train_type = 'train',
+   food_type = 'food',
+   player_type = 'player',
+
+
 }
 
 return conf

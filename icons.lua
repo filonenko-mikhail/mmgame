@@ -28,8 +28,11 @@ local food = {
    '🍯', '🍺', '🌈',
 }
 
+local train = '🚃'
+
 return {
    players = players,
    moons = moons,
    food = food,
+   train = train,
 }
