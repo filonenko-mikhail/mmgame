@@ -1,3 +1,5 @@
+#!/usr/bin/env tarantool
+
 local fiber = require('fiber')
 
 local conf = require('conf')
@@ -23,7 +25,7 @@ local function wind_loop()
             if player['x'] < conf.width then
                 player['x'] = player['x'] + 1
             end
-            if player['y'] < conf.width then
+            if player['y'] < conf.height then
                 player['y'] = player['y'] + 1
             end
             player = box.space[conf.space_name]:frommap(player)

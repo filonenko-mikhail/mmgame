@@ -194,7 +194,6 @@ box.cfg{listen=('0.0.0.0:%u'):format(localport),
 print('Waiting for schema. Ctrl-C to exit')
 while box.space[conf.space_name] == nil do
    fiber.sleep(0.1)
-
 end
 
 --[[

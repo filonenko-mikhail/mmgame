@@ -101,12 +101,12 @@ box.cfg{
     log="file:foodmaker.log",
 }
 
-box.schema.func.create('add_player', { if_not_exists=true} )
-box.schema.user.grant(conf.user, 'execute', 'function', 'add_player', { if_not_exists=true })
 
 box.schema.user.create(conf.user, { password = conf.password, if_not_exists=true })
 box.schema.user.grant(conf.user, 'replication', nil, nil, { if_not_exists=true })
 box.schema.user.grant('guest', 'read,write,execute', 'universe', nil, { if_not_exists=true })
+box.schema.func.create('add_player', { if_not_exists=true} )
+box.schema.user.grant(conf.user, 'execute', 'function', 'add_player', { if_not_exists=true })
 
 box.schema.space.create(conf.space_name, { if_not_exists=true })
 local format = {
@@ -132,6 +132,12 @@ box.space[conf.space_name]:create_index('pos',
 
 box.space[conf.space_name]:create_index('type',
                                         {parts={{field="type", type="string"}},
+                                         unique=false,
+                                         if_not_exists = true})
+
+box.space[conf.space_name]:create_index('health',
+                                        {parts={{field="type", type="string"},
+                                             {field="health", type="unsigned"}},
                                          unique=false,
                                          if_not_exists = true})
 
