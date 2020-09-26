@@ -183,7 +183,6 @@ local reader = fiber.new(function()
             if rc == 'R' then
                 local len = ffi.C.read(0, buf, 1)
                 local rc, res, err = pcall(function()
-                        log.info(buf[0])
                         if len == 1 then
                             if buf[0] == 68 or buf[0] == 97 then -- left
                                 move_player(-1, 0)
@@ -241,7 +240,13 @@ end
 --[[
     Регистрируемся на сервере
 ]]
-local conn = netbox.connect(server):call("add_player", {localport})
+_G.conn = netbox.connect(server, {wait_connected=false,
+                                  reconnect_after=2})
+conn:on_connect(function(client)
+        fiber.new(function ()
+                client:call('add_player', {localport})
+        end)
+end)
 
 --[[
     Позиция персонажа если он уже был создан
