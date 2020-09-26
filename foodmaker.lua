@@ -13,6 +13,9 @@ local render = require('render')
 -- ветер
 local wind = require('wind')
 
+-- bomb
+local bomd = require('bomb')
+
 --[[
     Цикл обработки столкновений
 ]]
@@ -27,15 +30,17 @@ local function collision_loop()
         player = player:tomap({names_only=true})
         if obj['type'] == conf.train_type then
             player['health'] = conf.born_health
-        else
+        elseif obj['type'] == conf.food_type then
             player['health'] = player['health'] + obj['health']
-        end
-        player = box.space[conf.space_name]:frommap(player)
 
-        if obj['type'] ~= conf.train_type then
             box.space[conf.space_name]:delete(obj['id'])
         end
-        box.space[conf.space_name]:put(player)
+        player = box.space[conf.space_name]:frommap(player)
+        if obj['type'] == conf.train_type then
+            box.space[conf.space_name]:put(player)
+        elseif obj['type'] == conf.food_type then
+            box.space[conf.space_name]:put(player)
+        end
     end
 end
 fiber.new(collision_loop)
@@ -48,13 +53,24 @@ local function collision_trigger(old, new, sp, op)
         if new['type'] == conf.player_type then
             for _, tuple in box.space[conf.space_name].index['pos']:pairs({new['x'], new['y']}) do
                 if new['id'] ~= tuple['id'] then
-                    log.info({obj=tuple, player=new})
                     channel:put({obj=tuple, player=new})
                 end
             end
         end
     end
 end
+
+-- Установка триггера проверки столкновений
+box.ctl.on_schema_init(function()
+        box.space._space:on_replace(function(old, sp)
+                if not old and sp and sp.name == conf.space_name then
+                    box.on_commit(function()
+                            box.space[sp.name]:on_replace(collision_trigger)
+                    end)
+                end
+        end)
+end)
+
 
 function add_player(port)
     if box.session.peer() == nil then
@@ -79,16 +95,6 @@ function add_player(port)
     end
 end
 
--- Устновки триггера проверки столкновений
-box.ctl.on_schema_init(function()
-        box.space._space:on_replace(function(old, sp)
-                if not old and sp and sp.name == conf.space_name then
-                    box.on_commit(function()
-                            box.space[sp.name]:on_replace(collision_trigger)
-                    end)
-                end
-        end)
-end)
 
 -- Создание спейс, индексов
 local fio = require('fio')
@@ -159,7 +165,6 @@ local function food_loop()
 end
 
 fiber.new(food_loop)
-
 
 --[[
     Цикл анимации подложки

@@ -20,8 +20,9 @@ local conf = {
    train_type = 'train',
    food_type = 'food',
    player_type = 'player',
+   bomb_type = 'bomb',
 
-
+   bomb_energy = 5,
 }
 
 return conf
