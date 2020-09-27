@@ -141,8 +141,8 @@ local function make_a_bomb()
     local player = box.space[conf.space_name]:get(box.info.uuid)
     if player ~= nil then
         player = player:tomap({names_only=true})
-        if player['health'] > conf.bomb_energy then
-            player['health'] = player['health'] - conf.bomb_energy
+        if player['health'] >= conf.born_health + conf.bomb_energy then
+            --player['health'] = player['health'] - conf.bomb_energy
             player = box.space[conf.space_name]:frommap(player)
 
             box.begin()
@@ -159,7 +159,7 @@ local function make_a_bomb()
                     bomb, err  = box.space[conf.space_name]:frommap(bomb)
 
                     box.space[conf.space_name]:put(bomb)
-                    box.space[conf.space_name]:put(player)
+                    box.space[conf.space_name]:update(player['id'], {{'-', 6, conf.bomb_energy}})
             end)
             if not rc then
                 log.info(res)
@@ -209,8 +209,6 @@ local reader = fiber.new(function()
 end)
 reader:name('Reader')
 
-local fio = require('fio')
-fio.mktree('./dataplayer')
 if arg[1] == nil then
     print('Add command line arg with coordinator replication url')
     os.exit(1)
@@ -219,14 +217,20 @@ end
 url = uri.parse(arg[1])
 url.login = conf.user
 url.password = conf.password
+local remoteserver = uri.format(url, {include_password=true})
 
-local server = uri.format(url, {include_password=true})
-local localport = 8082
-box.cfg{listen=('0.0.0.0:%u'):format(localport),
-        replication={ server },
+local localserver = arg[2] or "0.0.0.0:8082"
+
+local wrkdir = arg[3] or './playerstorage'
+local fio = require('fio')
+fio.mktree(wrkdir)
+
+box.cfg{listen=localserver,
+        replication={ remoteserver },
         replication_connect_timeout=60,
         replication_connect_quorum=1,
-        work_dir="./dataplayer",
+        replication_timeout=50,
+        work_dir=wrkdir,
         log="file:player.log"}
 
 --[[
@@ -240,20 +244,15 @@ end
 --[[
     Регистрируемся на сервере
 ]]
-_G.conn = netbox.connect(server, {wait_connected=false,
+_G.conn = netbox.connect(remoteserver, {wait_connected=false,
                                   reconnect_after=2})
 conn:on_connect(function(client)
         fiber.new(function ()
-                client:call('add_player', {localport})
+                local rc, res = pcall(client.call, client, 'add_player', {localserver})
+                log.info(rc)
+                log.info(res)
+                if not rc then
+                    log.info(res)
+                end
         end)
 end)
-
---[[
-    Позиция персонажа если он уже был создан
-]]
-local player = box.space[conf.space_name]:get(box.info.uuid)
-if player ~= nil then
-    player = player:tomap({names_only=true})
-    player_x = player['x']
-    player_y = player['y']
-end

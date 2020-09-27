@@ -6,49 +6,57 @@ local conf = require('conf')
 
 local esc = string.char(27)
 
--- двигаем курсор для рисования
+-- Двигаем курсор для рисования
 local function move_cursor(x, y)
     x = math.floor(x)
     y = math.floor(y)
-    io.write(esc .. ('[%i;%iH'):format(y, x)) io.flush()
+    io.write(esc .. ('[%i;%iH'):format(y, x))
 end
 
 local esc = string.char(27)
 
--- рендерер
--- используется io.write io.flush чтобы не было лишних переводов строк
+-- Используется `io.write` `io.flush` чтобы не было лишних переводов строк
 local function draw_icon(tuple)
-    io.write(tuple['icon']) io.flush()
+    io.write(tuple['icon'])
 end
 
 local function render_trigger(old, new, sp, op)
-    -- затереть старый кадр при условии что было смещение
+    -- Обновить информационную панель, если изменилось `health`
+    if new ~= nil and new['id'] == box.info.uuid then
+        if old == nil or (old['health'] ~= new['health']) then
+            move_cursor(5, 1)
+            io.write('Player: ' .. new['icon'])
+            io.write(' Health: ' .. tostring(new['health']) .. (' '):rep(20))
+            io.flush()
+        end
+    end
+
+    -- Если движения не было, ничего не делать
+    if old ~= nil and new ~= nil then
+        if old['x'] == new['x'] and old['y'] == new['y'] and old['icon'] == new['icon'] then
+            return
+        end
+    end
+
+    -- Затереть старую позицию при условии что было смещение
     if old ~= nil then
-        if (new ~= nil and
-                (old['x'] ~= new['x'] or old['y'] ~= new['y']) )
-        or new == nil then
-            move_cursor(old['x'], old['y'])
-            io.write(' ') io.flush()
-            for _, tuple in box.space[conf.space_name].index['pos']:pairs({old['x'], old['y']}, 'EQ') do
-                if tuple['id'] ~= old['id'] then
-                    move_cursor(old['x'], old['y'])
-                    draw_icon(tuple)
-                    break
-                end
+        move_cursor(old['x'], old['y'])
+        io.write(' ')
+        -- Восстанавливаем только один спрайт на старой позиции, если он был
+        for _, tuple in box.space[conf.space_name].index['pos']:pairs({old['x'], old['y']}, 'EQ') do
+            if tuple['id'] ~= old['id'] then
+                move_cursor(old['x'], old['y'])
+                draw_icon(tuple)
+                break
             end
         end
     end
-    -- новый кадр
+    -- Новый кадр
     if new ~= nil then
         move_cursor(new['x'], new['y'])
         draw_icon(new)
-        -- обновить информационную панель
-        if new['id'] == box.info.uuid then
-            move_cursor(5, 1)
-            io.write('Player: ' .. new['icon'])
-            io.write(' Health: ' .. tostring(new['health']) .. '   ') io.flush()
-        end
     end
+    io.flush()
 end
 
 -- установка рендерера на спейс

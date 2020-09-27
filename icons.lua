@@ -29,10 +29,13 @@ local train = esc .. '[1;37;42m' .. 'W' .. esc .. '[0m'
 
 local bomb = esc .. '[5;30;41m' ..  '@' .. esc .. '[0m'
 
+local fire = esc .. '[5;38;5;0;48;5;202m' .. ' ' .. esc .. '[0m'
+
 return {
     players = players,
     moons = moons,
     food = food,
     train = train,
-    bomb = bomb
+    bomb = bomb,
+    fire = fire,
 }
