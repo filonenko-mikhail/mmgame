@@ -59,16 +59,20 @@ end
 url = uri.parse(arg[1])
 url.login = conf.user
 url.password = conf.password
+local remoteserver = uri.format(url, {include_password=true})
 
-local server = uri.format(url, {include_password=true})
-local localport = 8083
-box.cfg{listen=('0.0.0.0:%u'):format(localport),
-        replication={ server },
+local localserver = arg[2] or "0.0.0.0:9090"
+
+local wrkdir = arg[3] or './datascores'
+local fio = require('fio')
+fio.mktree(wrkdir)
+box.cfg{listen=localserver,
+        replication={ remoteserver },
         replication_connect_timeout=60,
         replication_connect_quorum=1,
         read_only=true,
         replication_anon=true,
-        work_dir="./datascores"}
+        work_dir=wrkdir}
 
 print('Waiting for schema. Ctrl-C to exit')
 while box.space[conf.space_name] == nil do
