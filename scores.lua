@@ -63,7 +63,7 @@ local remoteserver = uri.format(url, {include_password=true})
 
 local localserver = arg[2] or "0.0.0.0:9090"
 
-local wrkdir = arg[3] or './datascores'
+local wrkdir = arg[3] or './scorestorage'
 local fio = require('fio')
 fio.mktree(wrkdir)
 box.cfg{listen=localserver,

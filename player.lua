@@ -183,14 +183,16 @@ local reader = fiber.new(function()
             if rc == 'R' then
                 local len = ffi.C.read(0, buf, 1)
                 local rc, res, err = pcall(function()
+                        log.info(buf[0])
+                        log.info(buf[1])
                         if len == 1 then
-                            if buf[0] == 68 or buf[0] == 97 then -- left
+                            if buf[0] == 68 or buf[0] == 97 or buf[0] == 2 then -- left
                                 move_player(-1, 0)
-                            elseif buf[0] == 67 or buf[0] == 100 then -- right
+                            elseif buf[0] == 67 or buf[0] == 100 or buf[0] == 6 then -- right
                                 move_player(1, 0)
-                            elseif buf[0] == 66 or buf[0] == 115 then -- down
+                            elseif buf[0] == 66 or buf[0] == 115 or buf[0] == 14 then -- down
                                 move_player(0, 1)
-                            elseif buf[0] == 65 or buf[0] == 119 then -- up
+                            elseif buf[0] == 65 or buf[0] == 119 or buf[0] == 16 then -- up
                                 move_player(0, -1)
                             elseif buf[0] == 32 then -- space
                                 make_a_bomb()
