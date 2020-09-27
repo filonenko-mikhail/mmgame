@@ -183,8 +183,6 @@ local reader = fiber.new(function()
             if rc == 'R' then
                 local len = ffi.C.read(0, buf, 1)
                 local rc, res, err = pcall(function()
-                        log.info(buf[0])
-                        log.info(buf[1])
                         if len == 1 then
                             if buf[0] == 68 or buf[0] == 97 or buf[0] == 2 then -- left
                                 move_player(-1, 0)
