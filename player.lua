@@ -229,7 +229,6 @@ box.cfg{listen=localserver,
         replication={ remoteserver },
         replication_connect_timeout=60,
         replication_connect_quorum=1,
-        replication_timeout=50,
         work_dir=wrkdir,
         log="file:player.log"}
 
