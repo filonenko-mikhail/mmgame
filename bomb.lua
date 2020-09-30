@@ -67,6 +67,4 @@ local function bomb_loop()
     end
 end
 
-if rawget(_G, 'bomb_loop') == nil then
-    _G.bomb_loop = fiber.new(bomb_loop)
-end
+fiber.new(bomb_loop)

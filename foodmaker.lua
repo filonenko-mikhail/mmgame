@@ -50,8 +50,8 @@ local fio = require('fio')
 fio.mktree(wrkdir)
 box.cfg{
     listen=server,
-    replication_connect_timeout=0.1,
     replication_connect_quorum=0,
+    replication_connect_timeout=0.1,
     work_dir=wrkdir,
     log="file:foodmaker.log",
 }

@@ -61,8 +61,8 @@ end
 --[[
     Отключить обязательный <enter> в stdin
 ]]
-local old = ffi.new('struct termios[1]', {{0}})
-local new = ffi.new('struct termios[1]', {{0}})
+local old = ffi.new('struct termios[2]', {{0}})
+local new = ffi.new('struct termios[2]', {{0}})
 if (ffi.C.tcgetattr(0, old) < 0) then
     error("tcgetattr old settings")
 end
@@ -248,8 +248,6 @@ _G.conn = netbox.connect(remoteserver, {wait_connected=false,
 conn:on_connect(function(client)
         fiber.new(function ()
                 local rc, res = pcall(client.call, client, 'add_player', {localserver})
-                log.info(rc)
-                log.info(res)
                 if not rc then
                     log.info(res)
                 end
