@@ -6,6 +6,11 @@ local conf = require('conf')
 
 local esc = string.char(27)
 
+-- выключаем курсор сейчас
+io.write(esc .. '[?25l') io.flush()
+-- включаем курсор при выходе
+box.ctl.on_shutdown(function() io.write(esc .. '[?25h') io.flush()end)
+
 -- Двигаем курсор для рисования
 local function move_cursor(x, y)
     x = math.floor(x)
