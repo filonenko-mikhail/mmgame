@@ -61,7 +61,7 @@ local function train_loop()
     box.space[conf.space_name]:put({conf.train_id,
                                     icons.train,
                                     x,
-                                    conf.height/2,
+                                    conf.height,
                                     conf.train_type,
                                     0})
     while true do
