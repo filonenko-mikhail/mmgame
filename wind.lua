@@ -25,7 +25,6 @@ local function wind_loop()
         local rc, err = pcall(function()
                 for _, player in box.space[conf.space_name].index['type']:pairs(conf.player_type) do
                     local operations = {}
-                    player = player:tomap({names_only=true})
                     if player['x'] < conf.width then
                         table.insert(operations, {'+', conf.x_field, 1})
                     end
@@ -33,7 +32,7 @@ local function wind_loop()
                         table.insert(operations, {'+', conf.y_field, 1})
                     end
                     if #operations > 0 then
-                        box.space[conf.space_name]:update(player['id'],operations)
+                        box.space[conf.space_name]:update(player['id'], operations)
                     end
                 end
         end)

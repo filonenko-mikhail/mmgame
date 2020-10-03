@@ -15,7 +15,6 @@ local function train()
     box.begin()
     local rc, err = pcall(function()
             box.space[conf.space_name]:update(conf.moon_id, {{'=', conf.icon_field, icons.moons[moon]}})
-            log.info(icons.moons[moon])
             box.space[conf.space_name]:update(conf.train_id, {{'=', conf.x_field, x}})
     end)
     if not rc then

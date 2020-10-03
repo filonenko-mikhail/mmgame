@@ -96,6 +96,9 @@ local height = conf.height
     Двигаем персонажа
 ]]
 local function move_player(x, y)
+    if x < -1 or x > 1 or y < -1 or y > 1 then
+        return
+    end
     if type(box.cfg) == 'function' or box.space[conf.space_name] == nil then
         return
     end
@@ -108,28 +111,26 @@ local function move_player(x, y)
                                 conf.height,
                                 conf.player_type,
                                 conf.born_health})
-    else
-        player = player:tomap({names_only=true})
-
-        local newx, newy = player['x'] + x, player['y'] + y
-        newx, newy = math.floor(newx), math.floor(newy)
-        if newx > width then
-            newx = width
-        end
-        if newy > height then
-            newy = height
-        end
-        if newx < 1 then
-            newx = 1
-        end
-        if newy < 2 then
-            newy = 2
-        end
-        player['x'], player['y'] = newx, newy
-
-        player = box.space[conf.space_name]:frommap(player)
+        box.space[conf.space_name]:put(player)
+        return
     end
-    box.space[conf.space_name]:put(player)
+
+    x, y = math.floor(x), math.floor(y)
+    local operations = {}
+    if x > 0 and player['x'] < conf.width then
+        table.insert(operations, {'+', conf.x_field, x})
+    elseif x < 0 and player['x'] > 1 then
+        table.insert(operations, {'+', conf.x_field, x})
+    end
+    if y > 0  and player['y'] < conf.height then
+        table.insert(operations, {'+', conf.y_field, y})
+    elseif y < 0 and player['y'] > 2 then
+        table.insert(operations, {'+', conf.y_field, y})
+    end
+    if #operations > 0 then
+        local r, err = box.space[conf.space_name]:update(player['id'], operations)
+        log.info(err)
+    end
 end
 
 
@@ -140,13 +141,8 @@ local function make_a_bomb()
 
     local player = box.space[conf.space_name]:get(box.info.uuid)
     if player ~= nil then
-        player = player:tomap({names_only=true})
         if player['health'] >= conf.born_health + conf.bomb_energy then
-            --player['health'] = player['health'] - conf.bomb_energy
-            player = box.space[conf.space_name]:frommap(player)
-
             box.begin()
-
             local rc, res = pcall(function()
                     local bomb = {
                         ['id'] = uuid.str(),
@@ -159,7 +155,7 @@ local function make_a_bomb()
                     bomb, err  = box.space[conf.space_name]:frommap(bomb)
 
                     box.space[conf.space_name]:put(bomb)
-                    box.space[conf.space_name]:update(player['id'], {{'-', 6, conf.bomb_energy}})
+                    box.space[conf.space_name]:update(player['id'], {{'-', conf.health_field, conf.bomb_energy}})
             end)
             if not rc then
                 log.info(res)
