@@ -14,75 +14,20 @@ local conf = require('conf')
 math.randomseed(fiber.time())
 
 --[[
-    Настройка stdin буфера чтения
-]]
-if ffi.os == 'Linux' then
-    ffi.cdef[[
-typedef unsigned char  cc_t;
-typedef unsigned int  speed_t;
-typedef unsigned int  tcflag_t;
-
-struct termios {
-  tcflag_t c_iflag;
-  tcflag_t c_oflag;
-  tcflag_t c_cflag;
-  tcflag_t c_lflag;
-  cc_t c_cc[32];
-  speed_t c_ispeed;
-  speed_t c_ospeed;
-};
-int tcgetattr(int fildes, struct termios *termios_p);
-int tcsetattr(int fildes, int optional_actions,
-       const struct termios *termios_p);
-void cfmakeraw(struct termios *termios_p);
-]]
-else
-    ffi.cdef[[
-typedef unsigned long   tcflag_t;
-typedef unsigned char   cc_t;
-typedef unsigned long   speed_t;
-
-struct termios {
-  tcflag_t        c_iflag;        /* input flags */
-  tcflag_t        c_oflag;        /* output flags */
-  tcflag_t        c_cflag;        /* control flags */
-  tcflag_t        c_lflag;        /* local flags */
-  cc_t            c_cc[20];     /* control chars */
-  speed_t         c_ispeed;       /* input speed */
-  speed_t         c_ospeed;       /* output speed */
-};
-int tcgetattr(int fildes, struct termios *termios_p);
-int tcsetattr(int fildes, int optional_actions,
-       const struct termios *termios_p);
-void cfmakeraw(struct termios *termios_p);
-]]
-end
-
---[[
     Отключить обязательный <enter> в stdin
 ]]
-local old = ffi.new('struct termios[2]', {{0}})
-local new = ffi.new('struct termios[2]', {{0}})
-if (ffi.C.tcgetattr(0, old) < 0) then
-    error("tcgetattr old settings")
-end
+local termattr = require('termattr')
+old = termattr.get()
+new = termattr.get()
+termattr.makeraw(new)
+termattr.set(new)
+
 box.ctl.on_shutdown(function()
-        if( ffi.C.tcsetattr( 0 , 0 , old ) < 0 ) then
-            error( "tcssetattr makeraw new" );
-        end
+        termattr.set(old)
 end)
-if (ffi.C.tcgetattr(0, new) < 0 ) then
-    error("tcgetaart new settings")
-end
-ffi.C.cfmakeraw(new);
-if (ffi.C.tcsetattr(0, 0, new) < 0) then
-    error("tcssetattr makeraw new")
-end
 
 local exit = function()
-    if( ffi.C.tcsetattr( 0 , 0 , old ) < 0 ) then
-        error( "tcssetattr makeraw new" );
-    end
+    termattr.set(old)
     os.exit(0)
 end
 
@@ -190,8 +135,6 @@ local reader = fiber.new(function()
                                 move_player(0, -1)
                             elseif buf[0] == 32 then -- space
                                 make_a_bomb()
-                            elseif buf[0] == 27 then --esc
-                                --exit()
                             elseif buf[0] == 3 then -- Ctrl-C
                                 exit()
                             end
@@ -207,7 +150,7 @@ reader:name('Reader')
 
 if arg[1] == nil then
     print('Add command line arg with coordinator replication url')
-    os.exit(1)
+    exit(1)
 end
 
 url = uri.parse(arg[1])
