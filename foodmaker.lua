@@ -8,12 +8,12 @@ local uri = require('uri')
 local icons = require('icons')
 local conf = require('conf')
 
-local render = require('render')
-local wind = require('wind')
-local bomd = require('bomb')
-local collision = require('collision')
-local train = require('train')
-local food = require('food')
+require('render')
+require('wind')
+require('bomb')
+require('collision')
+require('train')
+require('food')
 
 function add_player(server)
     if box.session.peer() == nil then

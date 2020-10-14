@@ -18,8 +18,6 @@ local function move_cursor(x, y)
     io.write(esc .. ('[%i;%iH'):format(y, x))
 end
 
-local esc = string.char(27)
-
 -- Используется `io.write` `io.flush` чтобы не было лишних переводов строк
 local function draw_icon(tuple)
     io.write(tuple['icon'])

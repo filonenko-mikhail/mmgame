@@ -32,7 +32,7 @@ local exit = function()
 end
 
 -- Загружаем рендерер
-local render = require('render')
+require('render')
 
 local width = conf.width
 local height = conf.height
@@ -73,8 +73,7 @@ local function move_player(x, y)
         table.insert(operations, {'+', conf.y_field, y})
     end
     if #operations > 0 then
-        local r, err = box.space[conf.space_name]:update(player['id'], operations)
-        log.info(err)
+        box.space[conf.space_name]:update(player['id'], operations)
     end
 end
 
@@ -148,11 +147,14 @@ local reader = fiber.new(function()
 end)
 reader:name('Reader')
 
+if arg[4] == 'bot' then
+    require('bot')
+end
+
 if arg[1] == nil then
     print('Add command line arg with coordinator replication url')
     exit(1)
 end
-
 url = uri.parse(arg[1])
 url.login = conf.user
 url.password = conf.password
@@ -174,9 +176,11 @@ box.cfg{listen=localserver,
 --[[
     Джем пока схема приедет по репликации
 ]]
-print('Waiting for schema. Ctrl-C to exit')
 while box.space[conf.space_name] == nil do
     fiber.sleep(0.1)
+    if box.space[conf.space_name] == nil then
+        print('Waiting for schema. Ctrl-C to exit')
+    end
 end
 
 --[[
